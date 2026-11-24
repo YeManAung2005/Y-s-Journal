@@ -1,6 +1,6 @@
 # Security
 
-> **Status: design approved; authentication is implemented in Phase 1.** Phase 0 currently exposes only a local health endpoint. Do not expose the development API to the LAN.
+> **Status: Phase 1 authentication and session protections are implemented.** Security logging, CSRF, rate limiting, and owner settings are active. File authorization, backups, and offline-security features arrive in later phases. Do not expose the development API to the LAN.
 
 ## Threat model
 
@@ -21,14 +21,14 @@ The application is a private local system. Primary risks:
 - One owner account created during onboarding.
 - Public registration disabled after setup.
 - Email/password login.
-- Argon2id password hashing with tuned parameters.
+- Argon2id password hashing (`m=19456`, `t=2`, `p=1`, 32-byte output).
 - Session tokens are 256-bit random values; only SHA-256 hashes are stored.
-- Cookie name: `__Host-ysj_sid`.
-- Cookie flags: HttpOnly, Secure, SameSite, Path `/`.
-- Session expires after **7 days of inactivity**.
+- Cookie name: `__Host-ysj_sid` in production; `ysj_sid` in development because HTTPS is introduced in Phase 13.
+- Cookie flags: HttpOnly, Secure in production, SameSite=Strict, Path `/`.
+- Session expires after **7 days of inactivity** and is refreshed at most once per minute.
 - Auto-lock after **15 minutes of inactivity**.
 - Unlock requires the account password.
-- Progressive login delays and rate limiting; no permanent account lockout.
+- Progressive login delays start at 200 ms, double per failure, and cap at 3 seconds; there is no permanent account lockout.
 - Social login is not part of the first release.
 
 ## CSRF
@@ -58,13 +58,12 @@ The application is a private local system. Primary risks:
 
 ## Rate limiting
 
-- Login attempts.
-- Onboarding.
-- File uploads.
-- Exports.
-- Backup operations.
-- Expensive analytics requests.
-- Progressive delays are applied without permanent account lockout.
+Implemented limits:
+
+- Login: 10 attempts per 15 minutes.
+- Onboarding, unlock, and password change: 20 requests per 15 minutes.
+- All `/api/v1` routes: 600 requests per minute.
+- Failed-login delays are per account and independent of IP rate limits.
 
 ## Security logs
 

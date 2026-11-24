@@ -6,11 +6,13 @@ import {
   LayoutDashboard,
   LineChart,
   Lock,
+  LogOut,
   NotebookPen,
   Settings,
 } from 'lucide-react'
 import { BrandMark } from '@/components/brand-mark'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 
 const navigation = [
@@ -20,7 +22,7 @@ const navigation = [
   { label: 'Daily Journal', icon: NotebookPen, disabled: true },
   { label: 'Calendar', icon: CalendarDays, disabled: true },
   { label: 'Poster Studio', icon: Image, disabled: true },
-  { label: 'Settings', icon: Settings, disabled: true },
+  { label: 'Settings', icon: Settings, to: '/settings' },
 ]
 
 function NavItem({ item }) {
@@ -59,7 +61,44 @@ function NavItem({ item }) {
   )
 }
 
+function UserCard() {
+  const { user, lock, signOut } = useAuth()
+  const initial = user?.displayName?.trim()?.charAt(0)?.toUpperCase() || 'Y'
+
+  return (
+    <div className="m-3 rounded-xl border border-border/80 bg-card/70 p-3">
+      <div className="flex items-center gap-2.5">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-primary/30 bg-primary/10 font-mono text-xs font-semibold text-primary">
+          {initial}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-xs font-semibold">{user?.displayName}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{user?.email}</p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button type="button" variant="secondary" size="sm" onClick={lock}>
+          <Lock aria-hidden="true" />
+          Lock
+        </Button>
+        <Button type="button" variant="outline" size="sm" onClick={() => void signOut()}>
+          <LogOut aria-hidden="true" />
+          Sign out
+        </Button>
+      </div>
+
+      <p className="mt-2.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+        <Lock aria-hidden="true" className="size-3 text-primary" />
+        Local-only · 15 min auto-lock
+      </p>
+    </div>
+  )
+}
+
 export function AppShell({ children }) {
+  const { user, lock, signOut } = useAuth()
+
   return (
     <div className="min-h-dvh text-foreground">
       <a
@@ -78,7 +117,10 @@ export function AppShell({ children }) {
           </div>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 px-3 py-2" aria-label="Primary navigation">
+        <nav
+          className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-2"
+          aria-label="Primary navigation"
+        >
           <p className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
             Workspace
           </p>
@@ -87,27 +129,43 @@ export function AppShell({ children }) {
           ))}
         </nav>
 
-        <div className="m-3 rounded-xl border border-border/80 bg-card/70 p-3">
-          <div className="flex items-center gap-2 text-xs font-medium">
-            <Lock className="size-3.5 text-primary" aria-hidden="true" />
-            Local-only build
-          </div>
-          <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
-            No cloud database and no public exposure. Data stays on this laptop.
-          </p>
-          <Badge variant="outline" className="mt-2.5">
-            Phase 0
-          </Badge>
-        </div>
+        <UserCard />
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border/70 bg-background/75 px-4 backdrop-blur-xl lg:hidden">
-          <div className="flex items-center gap-2.5">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border/70 bg-background/75 px-4 backdrop-blur-xl lg:hidden">
+          <div className="flex min-w-0 items-center gap-2.5">
             <BrandMark className="size-8" />
-            <span className="text-sm font-semibold">Y&apos;s Journal</span>
+            <span className="truncate text-sm font-semibold">Y&apos;s Journal</span>
           </div>
-          <Badge variant="outline">Phase 0</Badge>
+          <div className="flex items-center gap-1">
+            <span className="mr-1 hidden max-w-28 truncate text-xs text-muted-foreground sm:block">
+              {user?.displayName}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={lock}
+              aria-label="Lock workspace"
+            >
+              <Lock aria-hidden="true" />
+            </Button>
+            <Button asChild variant="ghost" size="icon">
+              <Link to="/settings" aria-label="Open settings">
+                <Settings aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => void signOut()}
+              aria-label="Sign out"
+            >
+              <LogOut aria-hidden="true" />
+            </Button>
+          </div>
         </header>
 
         <main

@@ -2,7 +2,7 @@
 
 A private, locally hosted personal productivity workspace combining a **Trading Journal**, a **Learning Tracker**, and a **Personal Daily Journal**.
 
-> **Current status: Phase 0 — Foundation only.** The application shell, API health endpoint, local MongoDB connectivity check, test tooling, and documentation foundations exist. Trading, Learning, Personal Journal, analytics, backups, offline sync, and the Windows installer are **not implemented yet**. No sample data has been created.
+> **Current status: Phase 1 — Security and Settings.** Owner onboarding, authentication, sessions, auto-lock, security logging, and owner preferences are implemented. Trading, Learning, Personal Journal, analytics, backups, offline sync, and the Windows installer are **not implemented yet**. No sample data has been created.
 
 ## Product boundaries
 
@@ -108,7 +108,9 @@ installer      Windows installer assets (Phase 13)
 - MongoDB currently listens only on `127.0.0.1`. It must never be exposed to the LAN.
 - Express is the only intended LAN-facing service.
 - LAN access will use trusted local HTTPS in the Windows setup phase. The current development server is HTTP on loopback only.
-- Authentication, CSRF protection, session management, rate limiting, and file authorization are planned for Phase 1 and later. Do not expose the current development API to other devices.
+- Authentication, CSRF protection, session management, rate limiting, security logging, auto-lock, and owner settings are implemented in Phase 1.
+- Production uses `__Host-ysj_sid` and `__Host-ysj_csrf` Secure cookies; development uses non-prefixed cookies over local HTTP because HTTPS arrives in Phase 13.
+- MongoDB currently listens only on `127.0.0.1`. It must never be exposed to the LAN.
 
 ## GitHub
 

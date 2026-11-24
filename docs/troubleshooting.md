@@ -74,7 +74,7 @@ Authentication is still pending.
 
 ## Local network access does not work
 
-LAN access is not configured in Phase 0. Future setup requires:
+LAN access is not configured yet. Future setup requires:
 
 - Private Windows network profile.
 - Firewall rule for TCP 443 on Private/LocalSubnet.
@@ -84,10 +84,32 @@ LAN access is not configured in Phase 0. Future setup requires:
 
 Do not open MongoDB or the Vite development server to the LAN.
 
+## The app shows “The API is unreachable”
+
+The client could not reach the local API. Confirm the API is running, then select **Try again**. Check the API console for Pino errors and run `npm.cmd run check:mongo`.
+
+## Setup says the owner account already exists
+
+Only one owner can be created. The setup screen appears only when no owner exists. Sign in with the existing account. If the owner password is lost, a local administrator recovery command will be added in a later phase; the first release does not expose a remote reset.
+
+## Requests fail with “The request could not be verified”
+
+The CSRF cookie and header no longer match, or the browser sent a foreign `Origin`. Reload the page to obtain a fresh token. Do not disable CSRF protection.
+
+## I was signed out unexpectedly
+
+- Sessions expire after 7 days of inactivity.
+- Changing the password signs out all other sessions.
+- The workspace auto-locks after 15 minutes; unlocking does not sign you out.
+
+## Tests fail with `MongoServerSelectionError`
+
+Integration tests require local MongoDB. Run `npm.cmd run check:mongo`. Tests use the separate `ys_journal_test` database and never modify `ys_journal`.
+
 ## Where are logs?
 
-Phase 0 logs API output to the console in JSON through Pino. Persistent log files and service logs are introduced with the Windows service in Phase 13.
+API output goes to the console in JSON through Pino, with cookies, tokens, and passwords redacted. Persistent service logs arrive with the Windows service in Phase 13.
 
 ## Where is my data?
 
-Phase 0 has no user data. The `ys_journal` database may exist from connectivity checks but no collections are created by the application yet.
+Phase 1 creates `users`, `sessions`, `settings`, `security_events`, and `app_meta` only after owner setup. No trading, learning, or personal journal records exist yet.

@@ -1,19 +1,10 @@
-import { Link, Outlet, createRootRoute } from '@tanstack/react-router'
-import { AppShell } from '@/components/app-shell'
-import { Button } from '@/components/ui/button'
+import { createRootRoute } from '@tanstack/react-router'
+import { AuthGate } from '@/features/auth/auth-gate'
 
 export const Route = createRootRoute({
-  component: RootComponent,
+  component: AuthGate,
   notFoundComponent: NotFoundComponent,
 })
-
-function RootComponent() {
-  return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
-  )
-}
 
 function NotFoundComponent() {
   return (
@@ -23,9 +14,6 @@ function NotFoundComponent() {
       <p className="mt-3 text-sm leading-6 text-muted-foreground">
         This route does not exist yet. It may be planned for a later phase.
       </p>
-      <Button asChild className="mt-6">
-        <Link to="/">Return to overview</Link>
-      </Button>
     </div>
   )
 }

@@ -9,6 +9,12 @@ import { pinoHttp } from 'pino-http'
 import { config as defaultConfig } from './config.js'
 import { createLogger } from './logger.js'
 import { healthRouter } from './routes/health.js'
+import { authRouter } from './routes/auth.js'
+import { onboardingRouter } from './routes/onboarding.js'
+import { settingsRouter } from './routes/settings.js'
+import { securityRouter } from './routes/security.js'
+import { csrfProtection } from './middleware/csrf.js'
+import { createRateLimiters } from './middleware/rate-limit.js'
 import { notFound } from './middleware/not-found.js'
 import { errorHandler } from './middleware/error-handler.js'
 
@@ -16,6 +22,7 @@ export function createApp({
   pingMongo = async () => false,
   logger = createLogger(),
   config = defaultConfig,
+  rateLimitEnabled = true,
 } = {}) {
   const app = express()
 
@@ -83,7 +90,19 @@ export function createApp({
   app.locals.pingMongo = pingMongo
   app.locals.config = config
 
+  const rateLimiters = createRateLimiters({ enabled: rateLimitEnabled })
+
   app.use('/api/v1', healthRouter)
+  app.use('/api/v1', rateLimiters.api)
+  app.use('/api/v1/auth/login', rateLimiters.login)
+  app.use('/api/v1/auth/unlock', rateLimiters.sensitive)
+  app.use('/api/v1/auth/password', rateLimiters.sensitive)
+  app.use('/api/v1/onboarding', rateLimiters.sensitive)
+  app.use('/api/v1', csrfProtection)
+  app.use('/api/v1', onboardingRouter)
+  app.use('/api/v1', authRouter)
+  app.use('/api/v1', settingsRouter)
+  app.use('/api/v1', securityRouter)
   app.use('/api', notFound)
 
   if (config.nodeEnv === 'production') {

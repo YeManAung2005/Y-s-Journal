@@ -52,6 +52,7 @@ export default [
       'src/client/components/ui/**/*.jsx',
       'src/client/routes/**/*.jsx',
       'src/client/main.jsx',
+      'src/client/lib/auth-context.jsx',
     ],
     rules: {
       'react-refresh/only-export-components': 'off',

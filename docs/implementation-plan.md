@@ -2,6 +2,8 @@
 
 The project is implemented one approved phase at a time. Each phase ends with tests, lint, build, documentation, commit, and a review gate.
 
+**Completed:** Phase 0 (foundation) and Phase 1 (security and settings).
+
 ## Approved defaults
 
 - Coding environment: OpenCode.

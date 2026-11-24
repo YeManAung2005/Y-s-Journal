@@ -1,25 +1,67 @@
 # User Guide
 
-> **Status: Phase 0.** The application currently contains only a foundation overview and system health status. Trading, Learning, Daily Journal, Calendar, Poster Studio, and Settings are not implemented yet.
+> **Status: Phase 1.** Owner setup, sign-in, workspace locking, and preferences are available. Trading, Learning, Daily Journal, Calendar, Poster Studio, analytics, and backups are not implemented yet.
 
-## Current screen
+## First launch
 
-The Overview shows:
+1. Open `http://127.0.0.1:5173` (development) or `http://127.0.0.1:4000` (production build).
+2. Create the owner account. This is one-time setup; registration is closed afterward.
+3. Enter a display name, email, and a password of at least 12 characters containing a letter and a number.
+4. You are signed in automatically. No sample data is created.
 
-- API status.
-- MongoDB connectivity.
-- API uptime.
-- Phase 0 foundation scope.
-- Privacy baseline.
-- The next planned phase.
+## Signing in and out
 
-No personal data is created or displayed.
+- Sign in with the owner email and password.
+- Sign out from the sidebar (desktop) or header (mobile). Signing out revokes the server session.
+- A session expires after 7 days without activity. Sign in again if it expires.
+
+## Automatic lock
+
+- The workspace locks after 15 minutes of inactivity.
+- Mouse, keyboard, touch, and scroll activity reset the timer.
+- Enter the owner password to unlock. The server verifies it.
+- You can lock manually with **Lock** in the sidebar or **Lock now** in Settings.
+
+## Overview
+
+The Overview shows API and MongoDB status, uptime, session expiry, the Phase 1 security baseline, and the next planned phase. It contains no personal records.
+
+## Settings
+
+Open **Settings** from the navigation.
+
+### Appearance
+
+- Theme: Dark, Light, or System.
+- Text size: 80%–150%.
+- Reduce motion: disables animations and transitions.
+
+### Time and goals
+
+- App time zone: used for journal and learning dates. Default `Asia/Yangon`.
+- Trading time zone: used for trade and session dates. Default `America/New_York`.
+- Daily study target: minutes per day. Default 60.
+
+Changes are saved only when you select **Save preferences**.
+
+### Security
+
+- Current session expiry.
+- Lock now / Sign out.
+- Change password: other sessions are signed out when the password changes.
+- Security activity: recent sign-ins, failed sign-ins, unlocks, logouts, password changes, and blocked requests.
+
+## Privacy
+
+- Personal Journal entries are not implemented yet. When added, they will be structurally isolated from trading analytics, learning analytics, dashboard, posters, and public sharing.
+- All records are scoped to the single owner account.
+- Logs never include passwords, passphrases, cookies, or tokens.
 
 ## Future modules
 
 ### Trading
 
-Post-trade journal for NQ, ES, MNQ, and MES, including accounts, partial exits, fees, risk, R-multiple, screenshots, emotions, and analytics.
+Post-trade journal for NQ, ES, MNQ, and MES with accounts, partial exits, fees, risk, R-multiple, screenshots, emotions, and analytics.
 
 ### Learning
 
@@ -27,27 +69,8 @@ Study records, categories, daily goals, streaks, resources, attachments, and lon
 
 ### Daily Journal
 
-One private main entry per day, quick notes, mood, gratitude, reflection, and a free-writing editor. Journal content never appears in trading, learning, dashboard, or poster data.
+One private entry per day with mood, gratitude, reflection, priorities, and quick notes.
 
-### Calendar
+### Calendar and Poster Studio
 
-Monthly, weekly, and daily activity views. Trading and learning activity filters. Personal Journal excluded by default.
-
-### Poster Studio
-
-Trading, Learning, and Monthly Progress posters with Y’s Journal branding, live preview, and PNG export. Personal Journal never appears in posters.
-
-### Settings
-
-Theme, accessibility, time zones, study target, checklist, storage, security, backups, and recovery.
-
-## First-run onboarding
-
-When implemented, onboarding will:
-
-1. Create the owner account.
-2. Configure instruments.
-3. Configure the ICT checklist.
-4. Connect Google Drive backup or defer with warning.
-
-No sample data will be created.
+Activity views and PNG posters using only explicitly allowed trading or learning data.

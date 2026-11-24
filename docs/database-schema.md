@@ -1,6 +1,6 @@
 # Database Schema
 
-> **Status: planned.** Only the `ys_journal` database name and connectivity check exist in Phase 0. The collections below are approved for later phases and are not yet implemented.
+> **Status: Phase 1 security collections are implemented.** The Trading, Learning, Journal, and operational collections below are approved for later phases and are not yet implemented.
 
 Database: `ys_journal`  
 MongoDB: `9.0.4`, standalone, `127.0.0.1:27017`  
@@ -17,6 +17,18 @@ ODM: Mongoose 9
 - Monetary values are integer micro-USD (`$1.00 = 1_000_000`).
 - Prices are integer ticks; quantities are integer hundredths.
 - Personal Journal content is isolated and redacted from audit diffs.
+
+## Implemented in Phase 1
+
+| Collection        | Notes                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `users`           | Owner email, Argon2id hash (excluded from queries by default), `passwordVersion`, failed-login counters, last login |
+| `sessions`        | Hashed token, sliding 7-day expiry with TTL index, owner reference, IP/user agent, revocation timestamp             |
+| `security_events` | Append-only events with owner scope, IP, user agent, and sanitized metadata                                         |
+| `settings`        | Owner-scoped appearance, time zone, study target, storage limit, and reminder preferences                           |
+| `app_meta`        | Singleton instance ID, schema version, and one-time owner setup state                                               |
+
+The setup source of truth is the existence of an owner user; `app_meta` records instance metadata and setup completion.
 
 ## Collections
 

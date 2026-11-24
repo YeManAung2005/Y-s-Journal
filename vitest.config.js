@@ -11,9 +11,10 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'node',
     setupFiles: ['./tests/setup.js'],
     include: ['tests/**/*.test.{js,jsx}'],
+    fileParallelism: false,
     restoreMocks: true,
     coverage: {
       provider: 'v8',

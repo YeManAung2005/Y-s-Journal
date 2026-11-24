@@ -1,8 +1,6 @@
 # Testing
 
-## Current Phase 0 tests
-
-Implemented:
+## Current tests
 
 - `tests/integration/health.test.js`
   - Healthy API response.
@@ -11,6 +9,24 @@ Implemented:
   - Request ID response header.
 - `tests/unit/health-pill.test.jsx`
   - Healthy, offline, and fallback UI states.
+- `tests/unit/security-helpers.test.js`
+  - Argon2id hashing and verification.
+  - Token hashing and constant-time comparison.
+  - Progressive delay bounds.
+  - IANA time zone validation.
+  - 15-minute idle boundary.
+- `tests/unit/validation.test.js`
+  - Owner onboarding rules, password strength, settings strictness, and password-change rules.
+- `tests/integration/auth.test.js`
+  - One-time owner onboarding, defaults, and cookie attributes.
+  - Sign-in success/failure, login-failure logging, and session checks.
+  - Authentication requirements and session expiry.
+  - Logout, unlock, password change, and other-session revocation.
+  - Settings validation and persistence.
+  - CSRF origin checks and rate limiting.
+  - Production `__Host-` cookie attributes.
+
+Integration tests connect to `MONGODB_TEST_URI` (default `mongodb://127.0.0.1:27017/ys_journal_test`) and drop that database. They never touch `ys_journal`.
 
 Commands:
 

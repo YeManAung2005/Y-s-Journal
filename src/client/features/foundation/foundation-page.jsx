@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   Check,
-  CircleDot,
+  Clock,
   Database,
   GitBranch,
   HardDrive,
@@ -13,15 +13,7 @@ import { HealthPill } from '@/components/health-pill'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchHealth } from '@/lib/api'
-
-function formatUptime(seconds) {
-  if (!Number.isFinite(seconds) || seconds < 0) return '—'
-  if (seconds < 60) return `${seconds}s`
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.floor(minutes / 60)
-  return `${hours}h ${minutes % 60}m`
-}
+import { useAuth } from '@/lib/auth-context'
 
 function healthState(query) {
   if (query.isPending) return 'loading'
@@ -29,15 +21,18 @@ function healthState(query) {
   return query.data?.status === 'ok' ? 'healthy' : 'degraded'
 }
 
-const completedFoundationItems = [
-  'Project repository initialized with a protected .gitignore',
-  'React, Vite, JavaScript, Tailwind, and shadcn/ui conventions installed',
-  'Express API foundation with health endpoint and Mongo connectivity check',
-  'Automated test, lint, format, and production build tooling configured',
-  'Architecture, security, backup, offline, and financial documentation started',
+const securityScope = [
+  'One-time owner onboarding; registration is closed afterward',
+  'Argon2id password hashing and 256-bit session tokens',
+  'Secure, HttpOnly, SameSite session cookie with hashed server-side storage',
+  '7-day inactivity expiry and 15-minute automatic workspace lock',
+  'CSRF protection, origin checks, and login rate limiting',
+  'Progressive sign-in delays and a private security activity log',
+  'Owner-only settings for appearance, time zones, and study goals',
 ]
 
 export function FoundationPage() {
+  const { user, session, settings } = useAuth()
   const healthQuery = useQuery({
     queryKey: ['system-health'],
     queryFn: fetchHealth,
@@ -46,6 +41,11 @@ export function FoundationPage() {
 
   const state = healthState(healthQuery)
   const health = healthQuery.data
+  const expires = session?.expiresAt
+    ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(
+        new Date(session.expiresAt),
+      )
+    : '—'
 
   return (
     <div className="space-y-8">
@@ -56,15 +56,16 @@ export function FoundationPage() {
         />
         <div className="relative max-w-3xl">
           <div className="flex flex-wrap items-center gap-3">
-            <Badge>Phase 0 · Foundation</Badge>
+            <Badge>Phase 1 · Security &amp; Settings</Badge>
             <HealthPill state={state} />
+            <Badge variant="outline">{settings?.appTimeZone ?? 'Asia/Yangon'}</Badge>
           </div>
           <h1 className="mt-5 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-            A private workspace for trades, learning, and reflection.
+            Welcome back, {user?.displayName}.
           </h1>
           <p className="mt-3 max-w-2xl text-pretty text-sm leading-6 text-muted-foreground sm:text-base">
-            The foundation is running. No trades, learning records, or personal journal entries
-            exist yet, and no sample data has been created.
+            Your workspace is protected and ready. No trades, learning records, or personal journal
+            entries exist yet, and no sample data has been created.
           </p>
         </div>
       </section>
@@ -101,7 +102,7 @@ export function FoundationPage() {
               {healthQuery.isPending ? '...' : health?.mongo === 'up' ? 'Connected' : 'Down'}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {health?.environment ? `${health.environment} environment` : 'No database writes'}
+              {health?.environment ? `${health.environment} environment` : 'No data writes'}
             </p>
           </CardContent>
         </Card>
@@ -109,16 +110,14 @@ export function FoundationPage() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">Uptime</CardTitle>
-              <CircleDot className="size-4 text-muted-foreground" aria-hidden="true" />
+              <CardTitle className="text-sm">Session</CardTitle>
+              <Clock className="size-4 text-muted-foreground" aria-hidden="true" />
             </div>
-            <CardDescription>Current API process</CardDescription>
+            <CardDescription>Owner session</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="font-mono text-2xl font-medium tracking-tight">
-              {health?.uptimeSeconds != null ? formatUptime(health.uptimeSeconds) : '—'}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">Health checked every 30 seconds</p>
+            <p className="font-mono text-2xl font-medium tracking-tight">Active</p>
+            <p className="mt-1 truncate text-xs text-muted-foreground">Expires {expires}</p>
           </CardContent>
         </Card>
       </div>
@@ -128,15 +127,15 @@ export function FoundationPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Check className="size-4 text-success" aria-hidden="true" />
-              <CardTitle>Foundation scope</CardTitle>
+              <CardTitle>Phase 1 scope</CardTitle>
             </div>
             <CardDescription>
-              Only infrastructure and documentation exist in this phase.
+              Authentication, session protection, and owner preferences are active.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
-              {completedFoundationItems.map((item) => (
+              {securityScope.map((item) => (
                 <li key={item} className="flex gap-3 text-sm leading-6 text-muted-foreground">
                   <Check className="mt-1 size-3.5 shrink-0 text-success" aria-hidden="true" />
                   <span>{item}</span>
@@ -175,12 +174,12 @@ export function FoundationPage() {
           <Card>
             <CardHeader>
               <CardTitle>Next gate</CardTitle>
-              <CardDescription>Phase 1 after approval</CardDescription>
+              <CardDescription>Phase 2 after approval</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm leading-6 text-muted-foreground">
-                Owner onboarding, authentication, sessions, auto-lock, security logs, and
-                application settings.
+                Financial engine, instruments, accounts, tags, trading sessions, and the ICT
+                checklist.
               </p>
             </CardContent>
           </Card>
