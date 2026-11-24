@@ -1,0 +1,74 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+*.local
+
+# Build output
+dist/
+build/
+coverage/
+.vite/
+
+# Logs
+*.log
+logs/
+pino-*.log
+
+# Application data (must live outside the repository)
+data/
+storage/
+uploads/
+backups/
+screenshots/
+attachments/
+trash/
+certificates/
+certs/
+secrets/
+private/
+*.pem
+*.key
+*.pfx
+*.p12
+*.cer
+*.crt
+
+# Databases and dumps
+*.mdb
+*.sqlite
+*.sqlite3
+*.db
+dump/
+mongodump/
+mongo-data/
+mongodb-data/
+
+# Test output and reports
+test-results/
+playwright-report/
+blob-report/
+allure-results/
+.nyc_output/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Generated route tree is committed, but generated local files are not
+.routeTree.tmp/
+.tanstack/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp

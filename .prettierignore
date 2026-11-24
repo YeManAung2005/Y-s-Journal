@@ -1,0 +1,5 @@
+node_modules
+dist
+coverage
+src/client/routeTree.gen.js
+package-lock.json
