@@ -1,14 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import {
-  Check,
-  Clock,
-  Database,
-  GitBranch,
-  HardDrive,
-  LockKeyhole,
-  Server,
-  ShieldCheck,
-} from 'lucide-react'
+import { Check, Clock, Database, HardDrive, LockKeyhole, Server, ShieldCheck } from 'lucide-react'
 import { HealthPill } from '@/components/health-pill'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,14 +12,13 @@ function healthState(query) {
   return query.data?.status === 'ok' ? 'healthy' : 'degraded'
 }
 
-const securityScope = [
-  'One-time owner onboarding; registration is closed afterward',
-  'Argon2id password hashing and 256-bit session tokens',
-  'Secure, HttpOnly, SameSite session cookie with hashed server-side storage',
-  '7-day inactivity expiry and 15-minute automatic workspace lock',
-  'CSRF protection, origin checks, and login rate limiting',
-  'Progressive sign-in delays and a private security activity log',
-  'Owner-only settings for appearance, time zones, and study goals',
+const workspaceScope = [
+  'One-time owner onboarding with Argon2id password hashing',
+  'Private sessions with CSRF, rate limits, auto-lock, and owner settings',
+  'Server-authoritative financial calculations with immutable trade snapshots',
+  'Completed trades with partial exits, fees, risk, R, and reviews',
+  'Private screenshots with generated storage keys and authenticated delivery',
+  'Owner-managed instruments, accounts, tags, sessions, and checklists',
 ]
 
 export function FoundationPage() {
@@ -56,7 +46,7 @@ export function FoundationPage() {
         />
         <div className="relative max-w-3xl">
           <div className="flex flex-wrap items-center gap-3">
-            <Badge>Phase 1 · Security &amp; Settings</Badge>
+            <Badge>Phase 3 · Trading Journal</Badge>
             <HealthPill state={state} />
             <Badge variant="outline">{settings?.appTimeZone ?? 'Asia/Yangon'}</Badge>
           </div>
@@ -64,8 +54,9 @@ export function FoundationPage() {
             Welcome back, {user?.displayName}.
           </h1>
           <p className="mt-3 max-w-2xl text-pretty text-sm leading-6 text-muted-foreground sm:text-base">
-            Your workspace is protected and ready. No trades, learning records, or personal journal
-            entries exist yet, and no sample data has been created.
+            Your workspace is private and ready. Completed trades, screenshots, and reviews are
+            supported. Learning and Personal Journal arrive in later phases; no sample data is
+            created.
           </p>
         </div>
       </section>
@@ -127,15 +118,15 @@ export function FoundationPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Check className="size-4 text-success" aria-hidden="true" />
-              <CardTitle>Phase 1 scope</CardTitle>
+              <CardTitle>Current scope</CardTitle>
             </div>
             <CardDescription>
-              Authentication, session protection, and owner preferences are active.
+              Security, settings, financial calculations, and the trading journal are active.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
-              {securityScope.map((item) => (
+              {workspaceScope.map((item) => (
                 <li key={item} className="flex gap-3 text-sm leading-6 text-muted-foreground">
                   <Check className="mt-1 size-3.5 shrink-0 text-success" aria-hidden="true" />
                   <span>{item}</span>
@@ -162,11 +153,14 @@ export function FoundationPage() {
               </div>
               <div className="flex gap-3">
                 <HardDrive className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-                <p>Secrets, uploads, backups, and certificates are excluded from Git.</p>
+                <p>
+                  Secrets, uploads, backups, and certificates stay local and are never served by the
+                  app.
+                </p>
               </div>
               <div className="flex gap-3">
-                <GitBranch className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-                <p>The private GitHub repository is pending GitHub CLI authentication.</p>
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                <p>Everything stays in this local workspace. No remote service is used.</p>
               </div>
             </CardContent>
           </Card>
@@ -174,12 +168,11 @@ export function FoundationPage() {
           <Card>
             <CardHeader>
               <CardTitle>Next gate</CardTitle>
-              <CardDescription>Phase 2 after approval</CardDescription>
+              <CardDescription>Phase 4 after approval</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm leading-6 text-muted-foreground">
-                Financial engine, instruments, accounts, tags, trading sessions, and the ICT
-                checklist.
+                Trading analytics, filters, comparisons, equity curves, drawdown, and streaks.
               </p>
             </CardContent>
           </Card>
