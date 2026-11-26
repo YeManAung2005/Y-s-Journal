@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import {
   BookOpen,
-  CalendarDays,
   Image,
   LayoutDashboard,
   LineChart,
@@ -9,6 +8,7 @@ import {
   LogOut,
   NotebookPen,
   Settings,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { BrandMark } from '@/components/brand-mark'
 import { Button } from '@/components/ui/button'
@@ -16,12 +16,13 @@ import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 
 const navigation = [
-  { label: 'Overview', icon: LayoutDashboard, to: '/' },
-  { label: 'Trading', icon: LineChart, disabled: true },
-  { label: 'Learning', icon: BookOpen, disabled: true },
-  { label: 'Daily Journal', icon: NotebookPen, disabled: true },
-  { label: 'Calendar', icon: CalendarDays, disabled: true },
-  { label: 'Poster Studio', icon: Image, disabled: true },
+  { label: 'Dashboard', icon: LayoutDashboard, to: '/' },
+  { label: 'Trading setup', icon: SlidersHorizontal, to: '/setup' },
+  { label: 'Trading journal', icon: LineChart, to: '/trades' },
+  { label: 'Analytics', icon: LineChart, to: '/analytics' },
+  { label: 'Learning', icon: BookOpen, to: '/learning' },
+  { label: 'Daily Journal', icon: NotebookPen, to: '/journal' },
+  { label: 'Poster Studio', icon: Image, to: '/posters' },
   { label: 'Settings', icon: Settings, to: '/settings' },
 ]
 
@@ -150,6 +151,31 @@ export function AppShell({ children }) {
               aria-label="Lock workspace"
             >
               <Lock aria-hidden="true" />
+            </Button>
+            <Button asChild variant="ghost" size="icon">
+              <Link to="/trades" aria-label="Open trading journal">
+                <LineChart aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="icon">
+              <Link to="/journal" aria-label="Open daily journal">
+                <NotebookPen aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="icon">
+              <Link to="/learning" aria-label="Open learning tracker">
+                <BookOpen aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="icon">
+              <Link to="/posters" aria-label="Open Poster Studio">
+                <Image aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="icon">
+              <Link to="/setup" aria-label="Open trading setup">
+                <SlidersHorizontal aria-hidden="true" />
+              </Link>
             </Button>
             <Button asChild variant="ghost" size="icon">
               <Link to="/settings" aria-label="Open settings">
