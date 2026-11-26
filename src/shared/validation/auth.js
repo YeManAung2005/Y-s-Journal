@@ -58,6 +58,11 @@ const timeZoneSchema = z
   .max(64)
   .refine(isValidTimeZone, 'Enter a valid IANA time zone.')
 
+const reminderTimeSchema = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use a 24-hour time such as 20:00.')
+
 export const settingsPatchSchema = z
   .object({
     theme: z.enum(['dark', 'light', 'system']).optional(),
@@ -66,6 +71,14 @@ export const settingsPatchSchema = z
     appTimeZone: timeZoneSchema.optional(),
     tradingTimeZone: timeZoneSchema.optional(),
     dailyStudyTargetMinutes: z.number().int().min(0).max(720).optional(),
+    calendarJournalIndicator: z.boolean().optional(),
+    reminders: z
+      .object({
+        journalEnabled: z.boolean().optional(),
+        journalTime: reminderTimeSchema.optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
 

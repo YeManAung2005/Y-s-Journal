@@ -18,6 +18,10 @@ export async function updateSettings(userId, patch) {
   const settings = await getOrCreateSettings(userId)
 
   for (const [key, value] of Object.entries(patch)) {
+    if (key === 'reminders' && value && typeof value === 'object') {
+      settings.reminders = { ...settings.reminders, ...value }
+      continue
+    }
     settings[key] = value
   }
 
@@ -34,6 +38,7 @@ export function serializeSettings(settings) {
     appTimeZone: settings.appTimeZone,
     tradingTimeZone: settings.tradingTimeZone,
     dailyStudyTargetMinutes: settings.dailyStudyTargetMinutes,
+    calendarJournalIndicator: settings.calendarJournalIndicator,
     storageLimitBytes: settings.storageLimitBytes,
     reminders: settings.reminders,
     updatedAt: settings.updatedAt,

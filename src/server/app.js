@@ -13,7 +13,20 @@ import { authRouter } from './routes/auth.js'
 import { onboardingRouter } from './routes/onboarding.js'
 import { settingsRouter } from './routes/settings.js'
 import { securityRouter } from './routes/security.js'
+import { financeRouter } from './routes/finance.js'
+import { referenceRouter } from './routes/reference.js'
+import { tradesRouter } from './routes/trades.js'
+import { accountAdjustmentsRouter } from './routes/account-adjustments.js'
+import { analyticsRouter } from './routes/analytics.js'
+import { learningRouter } from './routes/learning.js'
+import { journalRouter } from './routes/journal.js'
+import { dashboardRouter } from './routes/dashboard.js'
+import { calendarRouter } from './routes/calendar.js'
+import { postersRouter } from './routes/posters.js'
+import { filesRouter } from './routes/files.js'
+import { syncRouter } from './routes/sync.js'
 import { csrfProtection } from './middleware/csrf.js'
+import { idempotency } from './middleware/idempotency.js'
 import { createRateLimiters } from './middleware/rate-limit.js'
 import { notFound } from './middleware/not-found.js'
 import { errorHandler } from './middleware/error-handler.js'
@@ -99,10 +112,23 @@ export function createApp({
   app.use('/api/v1/auth/password', rateLimiters.sensitive)
   app.use('/api/v1/onboarding', rateLimiters.sensitive)
   app.use('/api/v1', csrfProtection)
+  app.use('/api/v1', idempotency)
+  app.use('/api/v1', syncRouter)
   app.use('/api/v1', onboardingRouter)
   app.use('/api/v1', authRouter)
   app.use('/api/v1', settingsRouter)
   app.use('/api/v1', securityRouter)
+  app.use('/api/v1', referenceRouter)
+  app.use('/api/v1', financeRouter)
+  app.use('/api/v1', tradesRouter)
+  app.use('/api/v1', accountAdjustmentsRouter)
+  app.use('/api/v1', analyticsRouter)
+  app.use('/api/v1', learningRouter)
+  app.use('/api/v1', journalRouter)
+  app.use('/api/v1', dashboardRouter)
+  app.use('/api/v1', calendarRouter)
+  app.use('/api/v1', postersRouter)
+  app.use('/api/v1', filesRouter)
   app.use('/api', notFound)
 
   if (config.nodeEnv === 'production') {

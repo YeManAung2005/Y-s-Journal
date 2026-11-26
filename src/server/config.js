@@ -22,4 +22,16 @@ export const config = Object.freeze({
   logLevel: process.env.LOG_LEVEL || 'info',
   rootDir,
   clientDistDir: path.join(rootDir, 'dist', 'client'),
+  storageDir: process.env.STORAGE_DIR
+    ? path.resolve(process.env.STORAGE_DIR)
+    : path.join(rootDir, 'storage'),
+  maxScreenshotBytes: 10 * 1024 * 1024,
+  maxScreenshotsPerTrade: 5,
+  maxLearningAttachmentBytes: 10 * 1024 * 1024,
+  maxLearningAttachments: 5,
 })
+
+export function uploadsDirFor(configValue = config) {
+  const storageDir = configValue.storageDir || path.join(configValue.rootDir || rootDir, 'storage')
+  return path.join(storageDir, 'uploads')
+}

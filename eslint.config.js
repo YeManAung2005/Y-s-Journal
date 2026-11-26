@@ -10,6 +10,7 @@ export default [
       'node_modules/**',
       'dist/**',
       'coverage/**',
+      'src/client/dev-dist/**',
       'src/client/routeTree.gen.js',
       'playwright-report/**',
       'test-results/**',
@@ -52,6 +53,7 @@ export default [
       'src/client/components/ui/**/*.jsx',
       'src/client/routes/**/*.jsx',
       'src/client/main.jsx',
+      'src/client/components/app-update.jsx',
       'src/client/lib/auth-context.jsx',
     ],
     rules: {

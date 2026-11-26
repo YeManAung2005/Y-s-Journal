@@ -16,6 +16,7 @@ const settingsSchema = new mongoose.Schema(
     appTimeZone: { type: String, default: DEFAULT_APP_TIME_ZONE },
     tradingTimeZone: { type: String, default: DEFAULT_TRADING_TIME_ZONE },
     dailyStudyTargetMinutes: { type: Number, default: 60, min: 0, max: 720 },
+    calendarJournalIndicator: { type: Boolean, default: false },
     storageLimitBytes: { type: Number, default: 5 * 1024 * 1024 * 1024, min: 0 },
     reminders: {
       journalEnabled: { type: Boolean, default: false },

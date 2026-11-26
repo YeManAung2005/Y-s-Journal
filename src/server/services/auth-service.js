@@ -5,6 +5,7 @@ import { User } from '../models/user.js'
 import { HttpError } from '../lib/http-error.js'
 import { getDummyPasswordHash, hashPassword, verifyPassword } from '../lib/password.js'
 import { recordSecurityEvent } from './security-service.js'
+import { ensureReferenceData } from './reference-data-service.js'
 import { createSession, revokeOtherSessions } from './session-service.js'
 
 const MAX_PROGRESSIVE_DELAY_MS = 3000
@@ -53,6 +54,7 @@ export async function createOwner({ email, displayName, password, req, logger })
   }
 
   await Settings.create({ userId: user._id })
+  await ensureReferenceData(user._id)
 
   await AppMeta.findOneAndUpdate(
     { _id: 'app' },

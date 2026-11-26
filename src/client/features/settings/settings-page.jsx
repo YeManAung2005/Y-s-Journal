@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Clock, Globe, KeyRound, LogOut, Palette, ShieldCheck } from 'lucide-react'
+import {
+  Bell,
+  Clock,
+  CloudOff,
+  Globe,
+  KeyRound,
+  LogOut,
+  Palette,
+  RefreshCw,
+  ShieldCheck,
+} from 'lucide-react'
+import { AppUpdate } from '@/components/app-update.jsx'
+import { OfflineStatus } from '@/components/offline-status.jsx'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -82,6 +94,11 @@ function toForm(settings) {
     appTimeZone: settings?.appTimeZone ?? 'Asia/Yangon',
     tradingTimeZone: settings?.tradingTimeZone ?? 'America/New_York',
     dailyStudyTargetMinutes: settings?.dailyStudyTargetMinutes ?? 60,
+    calendarJournalIndicator: settings?.calendarJournalIndicator ?? false,
+    reminders: {
+      journalEnabled: settings?.reminders?.journalEnabled ?? false,
+      journalTime: settings?.reminders?.journalTime ?? '20:00',
+    },
   }
 }
 
@@ -135,6 +152,11 @@ export function SettingsPage() {
         appTimeZone: form.appTimeZone,
         tradingTimeZone: form.tradingTimeZone,
         dailyStudyTargetMinutes: Number(form.dailyStudyTargetMinutes),
+        calendarJournalIndicator: form.calendarJournalIndicator,
+        reminders: {
+          journalEnabled: form.reminders.journalEnabled,
+          journalTime: form.reminders.journalTime,
+        },
       })
       setForm(toForm(updated))
       setStatus({ type: 'success', message: 'Settings saved.' })
@@ -268,25 +290,85 @@ export function SettingsPage() {
             />
           </FieldRow>
 
-          <div className="flex items-center justify-between gap-3 pt-1">
-            {status ? (
-              <p
-                role="status"
-                className={`text-xs ${status.type === 'success' ? 'text-success' : 'text-danger'}`}
-              >
-                {status.message}
-              </p>
-            ) : (
-              <span />
-            )}
-            <Button type="submit" size="sm" disabled={saving}>
-              {saving ? 'Saving…' : 'Save preferences'}
-            </Button>
-          </div>
+          <label className="flex items-center justify-between gap-4 rounded-lg border border-border/70 bg-secondary/30 p-3">
+            <span>
+              <span className="block text-sm font-medium">Calendar journal marker</span>
+              <span className="block text-xs text-muted-foreground">
+                Show only a neutral marker on days with a private journal entry. No journal content
+                is used.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={form.calendarJournalIndicator}
+              onChange={(event) => update('calendarJournalIndicator', event.target.checked)}
+              className="size-4 accent-[var(--primary)]"
+            />
+          </label>
         </Section>
+
+        <Section
+          icon={Bell}
+          title="Reminders"
+          description="A local, in-app journal reminder. Reminders never contain journal content."
+        >
+          <label className="flex items-center justify-between gap-4 rounded-lg border border-border/70 bg-secondary/30 p-3">
+            <span>
+              <span className="block text-sm font-medium">Daily journal reminder</span>
+              <span className="block text-xs text-muted-foreground">
+                Show a reminder on the Daily Journal page after the chosen time.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={form.reminders.journalEnabled}
+              onChange={(event) =>
+                update('reminders', {
+                  ...form.reminders,
+                  journalEnabled: event.target.checked,
+                })
+              }
+              className="size-4 accent-[var(--primary)]"
+            />
+          </label>
+
+          <FieldRow label="Reminder time" hint="24-hour time in the app time zone.">
+            <Input
+              type="time"
+              value={form.reminders.journalTime}
+              onChange={(event) =>
+                update('reminders', { ...form.reminders, journalTime: event.target.value })
+              }
+            />
+          </FieldRow>
+        </Section>
+
+        <div className="flex items-center justify-between gap-3 lg:col-span-2">
+          {status ? (
+            <p
+              role="status"
+              className={`text-xs ${status.type === 'success' ? 'text-success' : 'text-danger'}`}
+            >
+              {status.message}
+            </p>
+          ) : (
+            <span />
+          )}
+          <Button type="submit" size="sm" disabled={saving}>
+            {saving ? 'Saving…' : 'Save preferences'}
+          </Button>
+        </div>
       </form>
 
       <div className="grid gap-4 lg:grid-cols-2">
+        <Section
+          icon={CloudOff}
+          title="Offline and sync"
+          description="Unlock the encrypted cache, review pending changes, and sync now."
+        >
+          <OfflineStatus />
+        </Section>
+
         <Section
           icon={ShieldCheck}
           title="Session security"
@@ -317,6 +399,14 @@ export function SettingsPage() {
             The workspace locks automatically after 15 minutes of inactivity. Sessions expire after
             7 days without activity.
           </p>
+        </Section>
+
+        <Section
+          icon={RefreshCw}
+          title="App update"
+          description="Check for and activate a newer local app shell. Your data is never changed."
+        >
+          <AppUpdate />
         </Section>
 
         <Section

@@ -1,15 +1,23 @@
 // @vitest-environment node
 
+import path from 'node:path'
 import pino from 'pino'
 import { createApp } from '../../src/server/app.js'
 
 export const silentLogger = pino({ level: 'silent' })
+
+export const testStorageDir = path.resolve('storage', 'test-storage')
 
 export const testConfig = Object.freeze({
   appName: "Y's Journal",
   appVersion: '0.1.0',
   nodeEnv: 'test',
   clientDistDir: '/does-not-exist',
+  storageDir: testStorageDir,
+  maxScreenshotBytes: 10 * 1024 * 1024,
+  maxScreenshotsPerTrade: 5,
+  maxLearningAttachmentBytes: 10 * 1024 * 1024,
+  maxLearningAttachments: 5,
 })
 
 export function buildTestApp({ rateLimitEnabled = false, nodeEnv = 'test' } = {}) {

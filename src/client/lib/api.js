@@ -1,3 +1,29 @@
+import { queueMutation } from '../offline/queue.js'
+
+const NON_QUEUEABLE_PREFIXES = [
+  '/auth',
+  '/onboarding',
+  '/settings',
+  '/security',
+  '/finance',
+  '/health',
+  '/csrf',
+]
+
+function canQueue(path, mutating) {
+  return mutating && !NON_QUEUEABLE_PREFIXES.some((prefix) => path.startsWith(prefix))
+}
+
+function isNetworkFailure(error) {
+  return !(error instanceof ApiError)
+}
+
+function baseSnapshot(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null
+  if (typeof FormData !== 'undefined' && body instanceof FormData) return null
+  return body.expectedVersion === undefined ? null : { ...body }
+}
+
 export class ApiError extends Error {
   constructor(message, { status, code, details } = {}) {
     super(message)
@@ -45,7 +71,8 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
 
   const send = async () => {
     const headers = { accept: 'application/json' }
-    if (body !== undefined) headers['content-type'] = 'application/json'
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
+    if (body !== undefined && !isFormData) headers['content-type'] = 'application/json'
     if (mutating) headers['x-csrf-token'] = await ensureCsrf()
 
     return fetch(`/api/v1${path}`, {
@@ -53,11 +80,34 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
       credentials: 'same-origin',
       cache: 'no-store',
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     })
   }
 
-  let response = await send()
+  const queueable = canQueue(path, mutating)
+  const offlineNow = typeof navigator !== 'undefined' && navigator.onLine === false
+  const queuedError = () =>
+    new ApiError('Saved offline. It will sync when the host is available.', {
+      status: 0,
+      code: 'OFFLINE_QUEUED',
+    })
+
+  if (queueable && offlineNow) {
+    await queueMutation({ method: upperMethod, path, body, baseSnapshot: baseSnapshot(body) })
+    throw queuedError()
+  }
+
+  let response
+  try {
+    response = await send()
+  } catch (error) {
+    if (queueable && isNetworkFailure(error)) {
+      await queueMutation({ method: upperMethod, path, body, baseSnapshot: baseSnapshot(body) })
+      throw queuedError()
+    }
+    throw error
+  }
+
   let payload = await readPayload(response)
 
   if (response.status === 403 && payload?.error?.code === 'CSRF_INVALID') {

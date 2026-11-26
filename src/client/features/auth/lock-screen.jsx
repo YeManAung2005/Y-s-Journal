@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth-context'
 
 export function LockScreen() {
-  const { user, unlock, signOut } = useAuth()
+  const { user, offline, unlock, signOut } = useAuth()
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [pending, setPending] = useState(false)
@@ -39,7 +39,9 @@ export function LockScreen() {
           Welcome back{user?.displayName ? `, ${user.displayName}` : ''}
         </h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Locked after 15 minutes of inactivity. Enter your password to continue.
+          {offline
+            ? 'The local server is unreachable. Enter your password to unlock the encrypted offline cache.'
+            : 'Locked after 15 minutes of inactivity. Enter your password to continue.'}
         </p>
 
         <form className="mt-6 space-y-4 text-left" onSubmit={onSubmit} noValidate>

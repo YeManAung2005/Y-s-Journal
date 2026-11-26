@@ -1,5 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { apiRequest, ApiError, ensureCsrf } from './api.js'
+import { apiRequest, ApiError, ensureCsrf, resetCsrfToken } from './api.js'
+import {
+  changeOfflinePassword,
+  lockOfflineSession,
+  signOutOfflineSession,
+  syncNow,
+  unlockOfflineSession,
+} from '../offline/manager.js'
+import { getOfflineProfile } from '../offline/store.js'
 import { AUTO_LOCK_MS, IDLE_CHECK_INTERVAL_MS, isIdleExpired } from './idle.js'
 
 const AuthContext = createContext(null)
@@ -12,6 +20,8 @@ const initialState = {
   settings: null,
   session: null,
   error: null,
+  offline: false,
+  localProfile: null,
 }
 
 function resolveTheme(theme) {
@@ -19,6 +29,16 @@ function resolveTheme(theme) {
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
   return theme === 'light' ? 'light' : 'dark'
+}
+
+function offlineUser(profile) {
+  if (!profile?.userId) return null
+  return {
+    id: profile.userId,
+    email: profile.email ?? null,
+    displayName: profile.displayName || profile.email || 'Owner',
+    role: 'owner',
+  }
 }
 
 export function AuthProvider({ children }) {
@@ -45,7 +65,10 @@ export function AuthProvider({ children }) {
           session: session.session,
           settings: settings.settings,
           error: null,
+          offline: false,
+          localProfile: null,
         })
+        void syncNow()
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
           setState({ ...initialState, status: 'unauthenticated' })
@@ -54,6 +77,19 @@ export function AuthProvider({ children }) {
         throw error
       }
     } catch (error) {
+      const networkFailure = !(error instanceof ApiError)
+      const profile = networkFailure ? await getOfflineProfile().catch(() => null) : null
+
+      if (profile) {
+        setState({
+          ...initialState,
+          status: 'locked',
+          offline: true,
+          localProfile: profile,
+        })
+        return
+      }
+
       setState({ ...initialState, status: 'error', error })
     }
   }, [])
@@ -65,10 +101,14 @@ export function AuthProvider({ children }) {
   }, [loadSession])
 
   const lock = useCallback(() => {
+    if (state.status !== 'authenticated') return
+    lockOfflineSession()
     setState((current) =>
-      current.status === 'authenticated' ? { ...current, status: 'locked' } : current,
+      current.status === 'authenticated'
+        ? { ...current, status: 'locked', offline: false, localProfile: null }
+        : current,
     )
-  }, [])
+  }, [state.status])
 
   useEffect(() => {
     if (state.status !== 'authenticated') return undefined
@@ -138,6 +178,12 @@ export function AuthProvider({ children }) {
       body: { email, password },
     })
     const settings = await apiRequest('/settings')
+    await unlockOfflineSession({
+      password,
+      userId: data.user.id,
+      email: data.user.email,
+      displayName: data.user.displayName,
+    })
     lastActivityRef.current = Date.now()
     setState({
       status: 'authenticated',
@@ -145,12 +191,21 @@ export function AuthProvider({ children }) {
       session: null,
       settings: settings.settings,
       error: null,
+      offline: false,
+      localProfile: null,
     })
+    void syncNow()
   }, [])
 
   const completeOnboarding = useCallback(async (payload) => {
     const data = await apiRequest('/onboarding', { method: 'POST', body: payload })
     const settings = await apiRequest('/settings')
+    await unlockOfflineSession({
+      password: payload.password,
+      userId: data.user.id,
+      email: data.user.email,
+      displayName: data.user.displayName,
+    })
     lastActivityRef.current = Date.now()
     setState({
       status: 'authenticated',
@@ -158,14 +213,54 @@ export function AuthProvider({ children }) {
       session: null,
       settings: settings.settings,
       error: null,
+      offline: false,
+      localProfile: null,
     })
   }, [])
 
-  const unlock = useCallback(async (password) => {
-    await apiRequest('/auth/unlock', { method: 'POST', body: { password } })
-    lastActivityRef.current = Date.now()
-    setState((current) => ({ ...current, status: 'authenticated' }))
-  }, [])
+  const unlock = useCallback(
+    async (password) => {
+      const profile = state.localProfile ?? (await getOfflineProfile().catch(() => null))
+      let serverUnavailable = false
+
+      try {
+        await apiRequest('/auth/unlock', { method: 'POST', body: { password } })
+      } catch (error) {
+        serverUnavailable = !(error instanceof ApiError)
+        if (!serverUnavailable) throw error
+        if (!profile) throw error
+
+        try {
+          await unlockOfflineSession({ password, profile })
+        } catch {
+          throw new ApiError('The password is incorrect.', {
+            status: 401,
+            code: 'INVALID_PASSWORD',
+          })
+        }
+      }
+
+      if (!serverUnavailable) {
+        await unlockOfflineSession({
+          password,
+          userId: state.user?.id ?? profile?.userId,
+          email: state.user?.email ?? profile?.email,
+          displayName: state.user?.displayName ?? profile?.displayName,
+        })
+      }
+
+      lastActivityRef.current = Date.now()
+      setState((current) => ({
+        ...current,
+        user: current.user ?? offlineUser(profile),
+        status: 'authenticated',
+        offline: false,
+        localProfile: null,
+      }))
+      void syncNow()
+    },
+    [state.localProfile, state.user],
+  )
 
   const signOut = useCallback(async () => {
     try {
@@ -173,6 +268,8 @@ export function AuthProvider({ children }) {
     } catch {
       // The local session is cleared regardless of server availability.
     }
+    resetCsrfToken()
+    await signOutOfflineSession()
     setState({ ...initialState, status: 'unauthenticated' })
   }, [])
 
@@ -184,6 +281,10 @@ export function AuthProvider({ children }) {
 
   const changePassword = useCallback(async (payload) => {
     await apiRequest('/auth/password', { method: 'POST', body: payload })
+    await changeOfflinePassword({
+      currentPassword: payload.currentPassword,
+      newPassword: payload.newPassword,
+    })
   }, [])
 
   const value = useMemo(
@@ -196,6 +297,7 @@ export function AuthProvider({ children }) {
       completeOnboarding,
       saveSettings,
       changePassword,
+      syncNow,
       retry: loadSession,
     }),
     [

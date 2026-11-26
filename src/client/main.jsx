@@ -5,6 +5,8 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen.js'
 import { queryClient } from './lib/query-client'
 import { AuthProvider } from './lib/auth-context'
+import { AppUpdateProvider } from './components/app-update.jsx'
+import { setupOffline } from './offline/manager.js'
 import './styles.css'
 
 const router = createRouter({
@@ -16,12 +18,29 @@ const router = createRouter({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
+      <AppUpdateProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </AppUpdateProvider>
     </QueryClientProvider>
   )
 }
+
+// The development server must not reuse a cached shell from an earlier build.
+// Stale chunks can mix old and new UI, which duplicates panels after a refresh.
+if (import.meta.env.DEV) {
+  if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+    void navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) void registration.unregister()
+    })
+  }
+  if (typeof caches !== 'undefined') {
+    void caches.keys().then((names) => Promise.all(names.map((name) => caches.delete(name))))
+  }
+}
+
+setupOffline(queryClient)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
