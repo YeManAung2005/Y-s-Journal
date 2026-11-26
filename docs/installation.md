@@ -1,6 +1,6 @@
 # Installation
 
-> **Status: Phase 0 development installation only.** The one-click Windows installer is planned for Phase 13.
+> **Status: Phase 9 development installation only.** The one-click Windows installer is planned for Phase 13.
 
 ## Development installation
 
@@ -69,11 +69,11 @@ npm.cmd run start
 
 Open `http://127.0.0.1:4000`.
 
-Production-like mode still uses HTTP on loopback in Phase 0. HTTPS, LAN binding, and background service installation are introduced in Phase 13.
+Production-like mode still uses HTTP on loopback in the current phase. HTTPS, LAN binding, and background service installation are introduced in Phase 13.
 
 ## Configuration
 
-`.env` is ignored by Git.
+`.env` stays local and is never served by the app.
 
 | Variable      | Default                                | Notes                                                      |
 | ------------- | -------------------------------------- | ---------------------------------------------------------- |
@@ -81,7 +81,10 @@ Production-like mode still uses HTTP on loopback in Phase 0. HTTPS, LAN binding,
 | `HOST`        | `127.0.0.1`                            | Do not change to `0.0.0.0` before HTTPS and firewall setup |
 | `PORT`        | `4000`                                 | Express API                                                |
 | `MONGODB_URI` | `mongodb://127.0.0.1:27017/ys_journal` | Local database only                                        |
+| `STORAGE_DIR` | `<project>/storage`                    | Screenshot bytes live under `storage/uploads`              |
 | `LOG_LEVEL`   | `info`                                 | Pino log level                                             |
+
+Dashboard layouts and calendar totals use the existing local MongoDB and require no additional service or environment variable. The journal marker is stored in owner settings and is off by default.
 
 ## Verification
 
@@ -89,7 +92,7 @@ Production-like mode still uses HTTP on loopback in Phase 0. HTTPS, LAN binding,
 npm.cmd run verify
 ```
 
-This runs lint, tests, and the production build.
+This runs lint, tests, and the production build. After Phase 7 it reports 19 test files / 124 tests passing, lint clean, and a successful production build.
 
 ## Future Windows installer
 

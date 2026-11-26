@@ -1,6 +1,6 @@
 # Security
 
-> **Status: Phase 1 authentication and session protections are implemented.** Security logging, CSRF, rate limiting, and owner settings are active. File authorization, backups, and offline-security features arrive in later phases. Do not expose the development API to the LAN.
+> **Status: Phases 1–9 security controls are implemented.** Authentication, sessions, logging, CSRF, rate limiting, owner settings, private trade/file handling, owner-scoped learning records with private attachments, structurally isolated private journal entries and notes, owner-scoped dashboard layouts, neutral calendar markers, and encrypted offline caching/replay are active. Backups arrive in a later phase. Do not expose the development API to the LAN.
 
 ## Threat model
 
@@ -43,6 +43,7 @@ The application is a private local system. Primary risks:
 
 - Every query is scoped by `userId`.
 - Every record and file has an ownership check.
+- Dashboard layouts are owner-scoped; a foreign layout ID returns `404 NOT_FOUND`.
 - Direct-object references are validated.
 - Authorization is never enforced only in the frontend.
 - Tests attempt cross-owner access and unauthenticated access.
@@ -55,6 +56,17 @@ The application is a private local system. Primary risks:
 - Unlock while offline uses a locally stored verifier and encrypted local cache key.
 - Logout revokes the session and clears local cache.
 - Password changes invalidate sessions and local caches.
+
+## Offline cache
+
+- Cached query snapshots and queued payloads are encrypted with AES-GCM 256-bit before being written to IndexedDB.
+- The AES-GCM key is derived with PBKDF2-SHA-256, 250,000 iterations, and a per-user salt. It is non-extractable, held only in browser memory, and never persisted or sent to the server.
+- A separate PBKDF2 derivation is SHA-256 hashed into a local verifier used only for offline unlock. It is not a server credential and does not replace online password validation.
+- Lock clears the in-memory key and TanStack Query cache; sign-out additionally clears cached records and queued operations.
+- Password change reencrypts queued operations under the new key, updates the verifier, and invalidates old cached queries.
+- Service worker caching is limited to the app shell and static assets. Authenticated API responses use `no-store` and are not persisted in the HTTP cache.
+- Replayed mutations carry an owner-scoped `Idempotency-Key`; server responses are stored in `sync_operations`, and concurrent replays return `SYNC_IN_PROGRESS`.
+- Conflicts require an explicit user decision; no last-write-wins behavior is allowed.
 
 ## Rate limiting
 
@@ -93,15 +105,32 @@ A local recovery command will:
 
 ## File security
 
-- Files stored outside Git.
-- Generated storage keys, never client-supplied paths.
-- Resolve and verify that every file path remains inside the configured storage root.
-- Validate MIME type using file contents.
-- Enforce size limits.
-- Strip image metadata.
-- Require authentication and ownership for every file read.
-- Never expose unrestricted filesystem paths.
-- Soft delete files with 30-day trash retention.
+- Screenshot and learning-attachment bytes are stored under the configured local `storage/uploads` root, never in a static or publicly served directory.
+- Generated storage keys with owner/date folders; client-supplied paths and storage keys are rejected.
+- Every resolved file path is verified to remain inside the configured storage root.
+- Image contents are decoded and re-encoded with Sharp; metadata is stripped.
+- Declared MIME type must match decoded JPEG, PNG, or WebP content.
+- Size limit is 10 MB per image and five active images per owning record (trade screenshots or learning attachments).
+- File bytes are delivered only through `GET /api/v1/files/:id` after session and ownership checks.
+- File responses use `no-store`, `nosniff`, and a sanitized inline filename.
+- Foreign or missing file IDs return `404` and record `access_denied`.
+- Soft delete is implemented; 30-day trash purge is planned for Phase 11.
+
+## Learning isolation
+
+- Learning services query only owner-scoped learning categories, records, goals, and their private files.
+- Learning attachments are delivered only through `GET /api/v1/files/:id` after session and ownership checks; no static directory is exposed.
+- Deleting a learning record soft-deletes only attachments marked as deleted by that record; manually deleted files stay deleted.
+- Learning data is never read by trading analytics, the trading journal, or dashboard services.
+- Personal Journal models are never imported by learning services.
+
+## Dashboard and calendar isolation
+
+- Dashboard layouts are owner-scoped and mutations require CSRF plus `expectedVersion`. Stale version checks return `409 VERSION_CONFLICT`; the current default layout cannot be deleted and returns `409 DEFAULT_LAYOUT`.
+- Dashboard widget data comes only from trading analytics, learning summaries/goals, and calendar activity. Personal Journal content is never included.
+- Calendar aggregation reads owner-scoped active trades and learning records. Journal entries are consulted only when the owner enables `calendarJournalIndicator`, and only their dates are read.
+- The only journal-derived value in a calendar response is the boolean `hasJournalEntry`, and it is omitted entirely while the marker setting is off. Another owner's entries are never marked.
+- Dashboard and calendar responses never include journal text, mood, gratitude, notes, priorities, or attachments.
 
 ## HTTP security
 
@@ -118,15 +147,19 @@ A local recovery command will:
 
 ## Personal Journal isolation
 
-The journal is structurally isolated:
+The journal is implemented and structurally isolated:
 
-- Separate models, services, routes, and exports.
+- Separate models (`journal_entries`, `quick_notes`), service, routes, and UI.
 - Not imported by analytics, dashboard, poster, trading, or learning services.
+- Journal search queries only the authenticated owner's active journal entries and quick notes.
 - Poster data uses an explicit allowlist.
-- Calendar journal indicators are off by default and neutral when enabled.
-- Reminders contain no journal content.
+- Poster Studio reads only trading analytics, learning summaries, or one explicitly selected owner-scoped completed trade. Its service imports no journal model, returns no journal content fields, and writes poster configs to an owner-scoped `poster_configs` collection.
+- A `trade` poster requires an active trade owned by the authenticated user. Unknown or foreign `tradeId` values return `404` from the data endpoint and fail config save with `400 VALIDATION_ERROR`; trade poster responses expose no trade notes, lessons, review, emotions, rule violations, or screenshots.
+- PNG poster export runs on a client-side canvas and downloads locally; no poster image or poster data is uploaded.
+- Calendar journal markers are off by default and neutral when enabled: `hasJournalEntry` is an owner-scoped boolean with no journal content.
+- Reminders contain no journal content; the setting stores only an enabled flag and time.
 - Audit diffs redact journal text.
-- Automated privacy tests seed journal data and verify it cannot appear elsewhere.
+- Automated privacy tests inspect service imports and seed foreign-owned journal records to verify that journal data cannot appear elsewhere.
 
 ## Backup security
 

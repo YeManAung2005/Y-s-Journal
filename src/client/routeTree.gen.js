@@ -10,11 +10,44 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as JournalRouteImport } from './routes/journal'
+import { Route as LearningRouteImport } from './routes/learning'
+import { Route as PostersRouteImport } from './routes/posters'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SetupRouteImport } from './routes/setup'
+import { Route as TradesRouteImport } from './routes/trades'
+import { Route as TradesTradeIdRouteImport } from './routes/trades.$tradeId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+})
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+})
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+})
+const JournalRoute = JournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
+  getParentRoute: () => rootRouteImport,
+})
+const LearningRoute = LearningRouteImport.update({
+  id: '/learning',
+  path: '/learning',
+  getParentRoute: () => rootRouteImport,
+})
+const PostersRoute = PostersRouteImport.update({
+  id: '/posters',
+  path: '/posters',
   getParentRoute: () => rootRouteImport,
 })
 const SettingsRoute = SettingsRouteImport.update({
@@ -22,9 +55,38 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 })
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+})
+const TradesRoute = TradesRouteImport.update({
+  id: '/trades',
+  path: '/trades',
+  getParentRoute: () => rootRouteImport,
+})
+const TradesTradeIdRoute = TradesTradeIdRouteImport.update({
+  id: '/$tradeId',
+  path: '/$tradeId',
+  getParentRoute: () => TradesRoute,
+})
+
+const TradesRouteChildren = {
+  TradesTradeIdRoute: TradesTradeIdRoute,
+}
+
+const TradesRouteWithChildren =
+  TradesRoute._addFileChildren(TradesRouteChildren)
 
 const rootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  CalendarRoute: CalendarRoute,
+  JournalRoute: JournalRoute,
+  LearningRoute: LearningRoute,
+  PostersRoute: PostersRoute,
   SettingsRoute: SettingsRoute,
+  SetupRoute: SetupRoute,
+  TradesRoute: TradesRouteWithChildren,
 }
 export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)

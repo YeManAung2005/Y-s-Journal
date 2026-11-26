@@ -10,16 +10,18 @@ The project is built in phases. After each phase:
 4. Verify functionality manually.
 5. Update documentation.
 6. Show what changed.
-7. Commit the major feature.
-8. Wait for explicit approval before the next phase.
+7. Wait for explicit approval before the next phase.
 
-## Repository rules
+## Local workspace rules
 
-- Commit after every approved major feature.
-- Do not commit `.env` files, secrets, database files, screenshots, backups, certificates, keys, or OAuth credentials.
-- Keep runtime data outside the repository.
-- Do not force-push approved history.
+- Keep all work in the local workspace; no remote repository workflow.
+- Keep `.env` files, secrets, database files, screenshots, backups, certificates, keys, OAuth credentials, and runtime data local.
 - Do not rewrite or delete user work without investigation.
+
+## Service worker behavior
+
+- Development does not register an app-shell service worker. Stale dev workers and cached app files are removed on each dev page load so old and new UI chunks cannot mix.
+- The production build still registers the Workbox app shell. Use `npm.cmd run build` followed by `npm.cmd start` to test app updates.
 
 ## Code style
 
@@ -71,5 +73,4 @@ The project is built in phases. After each phase:
 - Security and privacy impact reviewed.
 - Documentation updated.
 - Changes shown to the user.
-- Phase committed.
 - Approval requested before continuing.

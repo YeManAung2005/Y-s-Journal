@@ -1,6 +1,6 @@
 # Financial Calculations
 
-> **Status: approved specification, not yet implemented.** The financial engine begins in Phase 2 and is authoritative on the server.
+> **Status: implemented in Phase 2, used by persisted trades in Phase 3, and aggregated in Phase 4.** The authoritative server engine calculates trade values before storage; the client calculator is a read-only preview that stores nothing.
 
 ## Canonical units
 
@@ -92,6 +92,23 @@ Gross R = Gross P&L / selected initial risk
 
 R is calculated before fees. Zero or negative risk never produces an R value.
 
+## Poster ROI on risk
+
+```text
+Trade ROI = selected-basis P&L / selected risk
+```
+
+The single-trade poster uses the same selected risk as R and the poster's selected P&L basis. Gross ROI uses gross P&L; net ROI uses net P&L and stays unavailable when fees are missing. Zero, negative, or missing risk never produces an ROI value; the poster displays **Unavailable** and an explanatory note instead of inventing a number.
+
+## Implementation notes
+
+- Stored values are always integer micro-USD, integer ticks, and integer quantity hundredths.
+- `decimal.js` runs at 28 significant digits with half-up rounding; rounding happens only when a value must be stored as an integer micro-USD.
+- `grossR`, `weightedAverageExitTicks`, and `weightedAverageExitPrice` are decimal strings so precision is not lost in JSON or MongoDB.
+- Fee allocation uses `BigInt` largest remainders at micro-USD precision and breaks ties by exit order. Allocations always sum exactly to the entered total.
+- The active formula version is `2026-11-24.1` and is returned with every calculation.
+- `POST /api/v1/finance/calculate` exposes a server-authoritative preview. Completed trades recompute and store these values server-side.
+
 ## Worked fixtures
 
 ### NQ long with three exits
@@ -170,6 +187,8 @@ Gross R: `$2,200 / $600 = 3.6667`
 | Break-even       | Exact zero P&L on the selected basis                                          |
 | Winning day      | Daily selected-basis P&L greater than zero                                    |
 | Losing day       | Daily selected-basis P&L less than zero                                       |
+
+Phase 4 aggregates apply these definitions server-side. If any selected trade has missing fees, the entire net aggregate is `null`; available net values are reported through `coverage` but are never substituted for the missing trade. Average R averages only trades with stored `grossR`, with `rAvailable` and `rComplete` coverage fields. Break-even outcomes reset both win and loss streaks.
 
 ### Profit factor edge cases
 

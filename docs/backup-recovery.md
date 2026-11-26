@@ -83,7 +83,7 @@ Restore never silently merges records. Authentication credentials and active ses
 
 - OAuth connection initiated from the host laptop.
 - Minimum necessary Drive scope.
-- Encrypted refresh token stored outside Git.
+- Encrypted refresh token stored in local encrypted metadata, never in served app assets.
 - App-created backup folder only.
 - Disconnect revokes the token and stops scheduled backups.
 - Drive is not used for live synchronization.

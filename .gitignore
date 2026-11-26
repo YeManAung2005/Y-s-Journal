@@ -62,9 +62,10 @@ allure-results/
 Thumbs.db
 desktop.ini
 
-# Generated route tree is committed, but generated local files are not
+# Generated route tree is kept locally; generated local files are not
 .routeTree.tmp/
 .tanstack/
+src/client/dev-dist/
 
 # Temporary files
 tmp/

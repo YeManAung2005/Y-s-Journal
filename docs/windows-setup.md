@@ -7,7 +7,6 @@
 - Windows 11 Home Single Language, 64-bit.
 - Node.js 26.13.0 LTS.
 - npm 11.20.0.
-- Git 2.56.0.
 - MongoDB Community 9.0.4, running as an Automatic Windows service.
 - MongoDB bound to `127.0.0.1:27017`.
 - Chrome and Edge installed.

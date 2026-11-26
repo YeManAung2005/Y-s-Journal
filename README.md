@@ -2,12 +2,13 @@
 
 A private, locally hosted personal productivity workspace combining a **Trading Journal**, a **Learning Tracker**, and a **Personal Daily Journal**.
 
-> **Current status: Phase 1 — Security and Settings.** Owner onboarding, authentication, sessions, auto-lock, security logging, and owner preferences are implemented. Trading, Learning, Personal Journal, analytics, backups, offline sync, and the Windows installer are **not implemented yet**. No sample data has been created.
+> **Current status: Phase 9 — offline synchronization.** Owner security, settings, the server-authoritative financial engine, reference data, completed trades with partial exits/fees/risk/reviews, private screenshots, trading analytics, account adjustments, the Learning tracker, the private Personal Daily Journal with quick notes, search, and reminder settings, the Custom Dashboard, the Calendar, and the Poster Studio are implemented. Poster Studio includes trading, study, and single-trade ROI posters rendered locally to PNG. The app shell is cached offline, sensitive records and queued mutations are encrypted in IndexedDB, conflicts are user-resolved, and auto-lock clears the local key. Backups and the Windows installer are **not implemented yet**. No sample trades, learning records, or journal entries have been created.
 
 ## Product boundaries
 
 - Trading, Learning, and Personal Journal are separate modules with separate schemas, services, routes, and exports.
-- Personal Journal data is private and must never appear in trading analytics, learning analytics, dashboard widgets, posters, or public sharing.
+- Trading Setup, Analytics, Learning, and Daily Journal open in view mode; entry forms appear only through deliberate actions, with optional fields behind **Show optional fields**. The Calendar remains available at `/calendar` but is no longer linked from the sidebar.
+- Personal Journal data is private and must never appear in trading analytics, learning analytics, dashboard widgets, calendar responses, posters, or public sharing. The optional calendar journal marker is a neutral boolean only.
 - The first release is English-only, with translation architecture prepared for future Burmese localization.
 - Financial calculations are server-authoritative and use integer units, not JavaScript floating point.
 - The app is browser-only. No PWA installation is required.
@@ -23,7 +24,9 @@ A private, locally hosted personal productivity workspace combining a **Trading 
 | Backend      | Node.js 26 LTS, Express 5, JavaScript                                   |
 | Database     | MongoDB Community 9.0.4 via Mongoose 9                                  |
 | Validation   | Zod 4                                                                   |
-| Offline      | Service Worker + IndexedDB (planned)                                    |
+| Calculations | `decimal.js` with integer micro-USD, ticks, and quantity hundredths     |
+| Screenshots  | Sharp re-encoding and authenticated private file delivery               |
+| Offline      | Workbox service worker + encrypted Dexie IndexedDB cache                |
 | Backups      | Google Drive OAuth + AES-256-GCM (planned)                              |
 | Testing      | Vitest, Supertest, React Testing Library, Playwright (planned)          |
 
@@ -37,7 +40,7 @@ Exact versions are pinned in `package.json` and `package-lock.json`. The approve
 - MongoDB Community **9.x** running locally on `127.0.0.1:27017`
 - Chrome or Edge
 
-The current host has Node `26.13.0`, npm `11.20.0`, Git `2.56.0`, and MongoDB `9.0.4`.
+The current host has Node `26.13.0`, npm `11.20.0`, and MongoDB `9.0.4`.
 
 ## Local development
 
@@ -76,7 +79,7 @@ The Vite development server proxies `/api` to the Express API on `http://127.0.0
 ```text
 src/client     React application
 src/server     Express API
-src/shared     Shared constants, validation, and financial engine (future phases)
+src/shared     Shared constants, validation, and financial conversions
 tests          Unit, integration, security, and E2E tests
 scripts        Operational scripts
 docs           Architecture, security, backup, testing, and setup documentation
@@ -104,14 +107,13 @@ installer      Windows installer assets (Phase 13)
 
 ## Security notes
 
-- `.env`, database files, screenshots, attachments, backups, certificates, encryption keys, and OAuth credentials are ignored by Git.
+- `.env`, database files, screenshots, attachments, backups, certificates, encryption keys, and OAuth credentials stay local and are never served by the app.
 - MongoDB currently listens only on `127.0.0.1`. It must never be exposed to the LAN.
 - Express is the only intended LAN-facing service.
 - LAN access will use trusted local HTTPS in the Windows setup phase. The current development server is HTTP on loopback only.
-- Authentication, CSRF protection, session management, rate limiting, security logging, auto-lock, and owner settings are implemented in Phase 1.
+- Authentication, CSRF protection, session management, rate limiting, security logging, auto-lock, owner settings, and private trade/file handling are implemented in Phases 1–3; Phases 4–8 add analytics, Learning, Personal Journal, dashboard, calendar, and poster isolation checks.
 - Production uses `__Host-ysj_sid` and `__Host-ysj_csrf` Secure cookies; development uses non-prefixed cookies over local HTTP because HTTPS arrives in Phase 13.
-- MongoDB currently listens only on `127.0.0.1`. It must never be exposed to the LAN.
 
-## GitHub
+## Local-only workflow
 
-The local repository is initialized on `main`. Creating the private `ys-journal` repository requires GitHub CLI authentication, which is pending.
+All work stays in this workspace. No remote repository or cloud service is used. Runtime data stays in the `ys_journal` MongoDB database and under `storage/`.
